@@ -236,3 +236,24 @@ class Calculator:
                         weights_for_groups=self.weights_for_groups,
                     )
         return W1, W2, WUAUC
+
+    def calculate_neg_rank_ratio(
+        self, weights_for_equation: List, label_column: str = "label"
+    ) -> float:
+        """Calculate the rank ratio of negative target
+        :param weights_for_equation: weights for equation
+        :param label_column: target column, its values must be 0 or 1
+        """
+        self.get_overall_score(weights_for_equation)
+        neg_targets_rows = self.df[label_column].sum()
+        total_rows = self.df.shape[0]
+        neg_rank_sum = (
+            self.df["overall_score"].rank(ascending=False, method="first")
+            * self.df[label_column]
+        ).sum()
+        ratio = float(
+            neg_rank_sum
+            * 2
+            / ((total_rows * 2 - neg_targets_rows + 1) * neg_targets_rows)
+        )
+        return ratio
